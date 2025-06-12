@@ -1,0 +1,114 @@
+---
+title: "UsedCar"
+author: "Group Project"
+date: "2025-06-11"
+output:
+  word_document: default
+  html_document: default
+---
+
+
+```{r}
+#Load the data set
+df <- read.csv("used_car_price_dataset_extended.csv")
+head(df)
+```
+
+
+```{r}
+#check the missing values
+missing_values <- colSums(is.na(df))
+missing_values
+print(paste("Missing value :",sum(missing_values)))
+```
+
+
+```{r}
+#Checking Structures of variables
+str(df)
+```
+
+
+```{r}
+#COnvert char vatiable to factor
+
+df$fuel_type <- as.factor(df$fuel_type)
+df$brand  <- as.factor(df$brand )
+df$transmission <- as.factor(df$transmission)
+df$color <- as.factor(df$color)
+df$service_history <- as.factor(df$service_history)
+df$insurance_valid <- as.factor(df$insurance_valid)
+
+```
+
+
+```{r}
+#check again class
+str(df)
+```
+
+
+```{r}
+library(psych)
+describe(df)
+```
+
+
+```{r}
+# numeric variable data frame
+numeric_variable <- sapply(df,is.numeric)
+data_numeric <- df[,numeric_variable]
+print(paste("Numeric variables :",names(data_numeric)))
+
+#factor variable
+categorical_var <- sapply(df, is.factor)
+data_categorical <- df[,categorical_var]
+print(paste("Categorical  variables :",names(data_categorical)))
+```
+
+```{r}
+#Individual box plots
+for (col in names(data_numeric)) {
+  boxplot(data_numeric[[col]],
+          main = paste("Box plot for ",col),
+          col = "pink",
+          sub = paste("Outliers :",boxplot.stats(data_numeric[[col]])$out,collapse = ","))
+  
+}
+```
+
+
+
+Relationship between response variable with predictor variables
+```{r}
+#Scatter plot for numeric variable
+pairs(data_numeric)
+```
+
+```{r}
+var <- data.frame(cor(data_numeric))
+var
+```
+
+```{r}
+#Boxplot for categorical variables
+#Individual box 
+
+for (col in names(data_categorical)) {
+  boxplot(df$price_usd~data_categorical[[col]],
+          main = paste("Box plot for ",col),
+          col = "pink",
+          xlab = col,
+          ylab = "Price Usd")
+         
+  
+}
+```
+```{r}
+fit <- lm(df$price_usd~.,data = df)
+summary(fit)
+```
+
+
+
+
