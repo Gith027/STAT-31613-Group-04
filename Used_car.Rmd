@@ -77,6 +77,40 @@ for (col in names(data_numeric)) {
 }
 ```
 
+```{r}
+#remove mileage_kmpl outliers
+mileage_outliers <- boxplot.stats(df$mileage_kmpl)$out
+clean_df_0 <- subset(df,!(df$mileage_kmpl %in% mileage_outliers))
+
+#boxplot for remove outliers
+boxplot(clean_df_0$mileage_kmpl, main ="boxplot for removing outliers mileage_kmpl",col = "lightblue")
+
+```
+```{r}
+#remove price_usd outliers
+price_outliers <- boxplot.stats(clean_df_0$price_usd)$out
+clean_df <- subset(clean_df_0,!(clean_df_0$price_usd %in% price_outliers))
+
+#boxplot for remove outliers
+boxplot(clean_df$price_usd, main ="boxplot for removing outliers Price usd",col = "lightblue")
+
+```
+```{r}
+#rename clean df to df
+df <- clean_df
+```
+
+```{r}
+# numeric variable data frame
+numeric_variable <- sapply(df,is.numeric)
+data_numeric <- df[,numeric_variable]
+
+
+#factor variable
+categorical_var <- sapply(df, is.factor)
+data_categorical <- df[,categorical_var]
+
+```
 
 
 Relationship between response variable with predictor variables
@@ -104,10 +138,7 @@ for (col in names(data_categorical)) {
   
 }
 ```
-```{r}
-fit <- lm(df$price_usd~.,data = df)
-summary(fit)
-```
+
 
 
 
