@@ -140,6 +140,23 @@ for (col in names(data_categorical)) {
 ```
 
 
+```{r}
+#Check the distribution of numerical variable
+par(mfrow=c(3,2))
+
+hist(df$mileage_kmpl,main = "Histrogram for Mileage", xlab = "Mileage",col="pink")
+hist(df$engine_cc,main = "Histrogram for Engine CC", xlab = "Engine CC",col="blue")
+hist(df$price_usd,main = "Histrogram for Used car prices", xlab = "Price",col="green")
+hist(df$accidents_reported,main = "Histrogram for Reported accidents", xlab = "Reported accident",col="yellow")
+hist(df$owner_count,main = "Histrogram for Owner counts", xlab = "owner counts",col="pink")
+hist(df$make_year,main = "Histrogram for car make_year", xlab = "make_year",col="brown")
+
+```
+
+
+
+
+
 
 
 
