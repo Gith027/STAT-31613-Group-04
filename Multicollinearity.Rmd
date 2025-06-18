@@ -1,138 +1,9 @@
 ---
-title: "Multicollinearity"
+title: "multi_collinearity"
 author: "Group Project"
-date: "2025-06-13"
-output:
-  word_document: default
-  html_document: default
+output: html_document
+date: "2025-06-18"
 ---
-
-
-
-```{r}
-# Install necessary packages
-library(car)
-library(corrplot)
-```
-
-
-
-```{r}
-#Load the data set
-df <- read.csv("used_car_price_dataset_extended.csv")
-head(df)
-```
-
-
-```{r}
-#check the missing values
-missing_values <- colSums(is.na(df))
-missing_values
-print(paste("Missing value :",sum(missing_values)))
-```
-
-
-```{r}
-#Checking Structures of variables
-str(df)
-```
-
-
-```{r}
-#COnvert char vatiable to factor
-
-df$fuel_type <- as.factor(df$fuel_type)
-df$brand  <- as.factor(df$brand )
-df$transmission <- as.factor(df$transmission)
-df$color <- as.factor(df$color)
-df$service_history <- as.factor(df$service_history)
-df$insurance_valid <- as.factor(df$insurance_valid)
-
-```
-
-
-```{r}
-#check again class
-str(df)
-```
-
-
-```{r}
-library(psych)
-describe(df)
-```
-
-
-```{r}
-# numeric variable data frame
-numeric_variable <- sapply(df,is.numeric)
-data_numeric <- df[,numeric_variable]
-print(paste("Numeric variables :",names(data_numeric)))
-
-#factor variable
-categorical_var <- sapply(df, is.factor)
-data_categorical <- df[,categorical_var]
-print(paste("Categorical  variables :",names(data_categorical)))
-```
-
-```{r}
-#Individual box plots
-for (col in names(data_numeric)) {
-  boxplot(data_numeric[[col]],
-          main = paste("Box plot for ",col),
-          col = "pink",
-          sub = paste("Outliers :",boxplot.stats(data_numeric[[col]])$out,collapse = ","))
-  
-}
-```
-
-```{r}
-#remove mileage_kmpl outliers
-mileage_outliers <- boxplot.stats(df$mileage_kmpl)$out
-clean_df_0 <- subset(df,!(df$mileage_kmpl %in% mileage_outliers))
-
-#boxplot for remove outliers
-boxplot(clean_df_0$mileage_kmpl, main ="boxplot for removing outliers mileage_kmpl",col = "lightblue")
-
-```
-```{r}
-#remove price_usd outliers
-price_outliers <- boxplot.stats(clean_df_0$price_usd)$out
-clean_df <- subset(clean_df_0,!(clean_df_0$price_usd %in% price_outliers))
-
-#boxplot for remove outliers
-boxplot(clean_df$price_usd, main ="boxplot for removing outliers Price usd",col = "lightblue")
-
-```
-```{r}
-#rename clean df to df
-df <- clean_df
-```
-
-```{r}
-# numeric variable data frame
-numeric_variable <- sapply(df,is.numeric)
-data_numeric <- df[,numeric_variable]
-
-
-#factor variable
-categorical_var <- sapply(df, is.factor)
-data_categorical <- df[,categorical_var]
-
-```
-
-
-Relationship between response variable with predictor variables
-```{r}
-#Scatter plot for numeric variable
-pairs(data_numeric)
-```
-
-```{r}
-var <- data.frame(cor(data_numeric))
-var
-```
-
 
 
 ```{r}
@@ -143,29 +14,20 @@ summary(model)
 
 
 ```{r}
+library(car)
 vif(model) 
 ```
 
 
+```{r}
+# drop non-significant variables and fit linear regression model again
+model1 <- lm(price_usd ~ make_year+mileage_kmpl+engine_cc+fuel_type+owner_count+color, data = df)
+summary(model1)
+```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```{r}
+vif(model1)
+```
 
 
