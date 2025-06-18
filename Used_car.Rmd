@@ -155,8 +155,41 @@ hist(df$make_year,main = "Histrogram for car make_year", xlab = "make_year",col=
 
 
 
+```{r}
+#Response variable is right skewed so there is not satisfied normality assumption 
+#Now we use log transformation for price_usd
+df$sqrt_price_usd <- sqrt(df$price_usd)
+hist(df$sqrt_price_usd,main = "Histrogram for transformed Used car prices", xlab = "Sqrt_Price",col="green")
+```
 
 
+```{r}
+#remove the price_usd 
+new_df <- df[,-6]
+head(new_df)
+```
 
 
+```{r}
+# linear regression model 
+model <- lm(sqrt_price_usd ~ ., data = new_df)
+summary(model)
+```
+
+
+```{r}
+library(car)
+vif(model) 
+```
+
+
+```{r}
+# drop non-significant variables and fit linear regression model again
+model1 <- lm(sqrt_price_usd ~ make_year+mileage_kmpl+engine_cc+fuel_type+owner_count+color+brand, data = new_df)
+summary(model1)
+```
+
+```{r}
+vif(model1)
+```
 
