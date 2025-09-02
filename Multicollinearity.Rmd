@@ -1,0 +1,33 @@
+---
+title: "multi_collinearity"
+author: "Group Project"
+output: html_document
+date: "2025-06-18"
+---
+
+
+```{r}
+# linear regression model 
+model <- lm(price_usd ~ ., data = df)
+summary(model)
+```
+
+
+```{r}
+library(car)
+vif(model) 
+```
+
+
+```{r}
+# drop non-significant variables and fit linear regression model again
+model1 <- lm(price_usd ~ make_year+mileage_kmpl+engine_cc+fuel_type+owner_count+color, data = df)
+summary(model1)
+```
+
+
+```{r}
+vif(model1)
+```
+
+
