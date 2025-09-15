@@ -30,7 +30,7 @@ str(df)
 
 
 ```{r}
-#COnvert char vatiable to factor
+#Convert char variable to factor
 
 df$fuel_type <- as.factor(df$fuel_type)
 df$brand  <- as.factor(df$brand )
@@ -216,7 +216,7 @@ summary(model_01)
 ```
 
 ```{r}
-#Check multicorlinearity
+
 library(car)
 vif(model_01) 
 ```
@@ -232,6 +232,19 @@ model_01 <- lm(price_usd ~ make_year+mileage_kmpl+engine_cc+fuel_type+owner_coun
 model_02 <- stepAIC(model_01, direction = "both", trace = TRUE)
 ```
 Using lower AIC value we fiited final model
+```{r}
+summary(lm(price_usd ~ make_year + mileage_kmpl + engine_cc + fuel_type + 
+    owner_count + color ,data=train_df))
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
 ```{r}
 final_model <- lm( price_usd ~ make_year + mileage_kmpl + engine_cc + fuel_type + owner_count, data = train_df)
 summary(final_model)
