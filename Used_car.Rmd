@@ -30,7 +30,7 @@ str(df)
 
 
 ```{r}
-#COnvert char vatiable to factor
+#Convert char variable to factor
 
 df$fuel_type <- as.factor(df$fuel_type)
 df$brand  <- as.factor(df$brand )
@@ -99,18 +99,53 @@ boxplot(clean_df$price_usd, main ="boxplot for removing outliers Price usd",col 
 #rename clean df to df
 df <- clean_df
 ```
+```{r}
+table(df$fuel_type)
+table(df$brand)
+table(df$transmission)
+table(df$color)
+table(df$service_history)
+table(df$insurance_valid)
+```
+```{r}
+#split to the data set train and test with ratio 0.80
+# Set the desired split ratio (80/100) 
+split_ratio <- 0.8 
+data_bound <- ceiling(nrow(df) * split_ratio) 
+data_bound
+```
+```{r}
+library(dplyr)
+train_df <- df %>% slice_sample(n = data_bound, replace = FALSE) 
+set.seed(100)
+head(train_df) 
+
+```
 
 ```{r}
+str(train_df)
+```
+```{r}
+test_df <- df[-as.numeric(rownames(train_df)),] 
+head(test_df)
+```
+```{r}
+str(test_df)
+```
+
+```{r}
+#Now we consider only train dataset
 # numeric variable data frame
-numeric_variable <- sapply(df,is.numeric)
-data_numeric <- df[,numeric_variable]
+numeric_variable <- sapply(train_df,is.numeric)
+data_numeric <- train_df[,numeric_variable]
 
 
 #factor variable
-categorical_var <- sapply(df, is.factor)
-data_categorical <- df[,categorical_var]
+categorical_var <- sapply(train_df, is.factor)
+data_categorical <- train_df[,categorical_var]
 
 ```
+
 
 
 Relationship between response variable with predictor variables
@@ -120,16 +155,17 @@ pairs(data_numeric)
 ```
 
 ```{r}
+#Correlation matrix
 var <- data.frame(cor(data_numeric))
 var
 ```
 
 ```{r}
 #Boxplot for categorical variables
-#Individual box 
+#Individual box plot
 
 for (col in names(data_categorical)) {
-  boxplot(df$price_usd~data_categorical[[col]],
+  boxplot(train_df$price_usd~data_categorical[[col]],
           main = paste("Box plot for ",col),
           col = "pink",
           xlab = col,
@@ -140,6 +176,188 @@ for (col in names(data_categorical)) {
 ```
 
 
+```{r}
+#Check the distribution of numerical variable
+par(mfrow=c(3,2))
+
+hist(train_df$mileage_kmpl,main = "Histrogram for Mileage", xlab = "Mileage",col="pink")
+hist(train_df$engine_cc,main = "Histrogram for Engine CC", xlab = "Engine CC",col="blue")
+hist(train_df$price_usd,main = "Histrogram for Used car prices", xlab = "Price",col="green")
+hist(train_df$accidents_reported,main = "Histrogram for Reported accidents", xlab = "Reported accident",col="yellow")
+hist(train_df$owner_count,main = "Histrogram for Owner counts", xlab = "owner counts",col="pink")
+hist(train_df$make_year,main = "Histrogram for car make_year", xlab = "make_year",col="brown")
+
+```
 
 
+
+
+
+
+`
+
+
+```{r}
+# linear regression model with all the predictors
+full_model <- lm(price_usd ~ ., data = train_df)
+summary(full_model)
+```
+```{r}
+#Check multicorlinearity
+library(car)
+vif(full_model) 
+
+```
+
+```{r}
+# drop non-significant variables and fit linear regression model again
+model_01 <- lm(price_usd ~ make_year+mileage_kmpl+engine_cc+fuel_type+owner_count+brand+color, data = train_df)
+summary(model_01)
+```
+
+```{r}
+
+library(car)
+vif(model_01) 
+```
+
+
+variable selection
+```{r}
+#Stepwise regression procedure
+library(MASS)
+
+# Stepwise regression model for both direction with AIC criterion
+model_01 <- lm(price_usd ~ make_year+mileage_kmpl+engine_cc+fuel_type+owner_count+color+brand, data = train_df)
+model_02 <- stepAIC(model_01, direction = "both", trace = TRUE)
+```
+Using lower AIC value we fiited final model
+```{r}
+summary(lm(price_usd ~ make_year + mileage_kmpl + engine_cc + fuel_type + 
+    owner_count + color ,data=train_df))
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+```{r}
+final_model <- lm( price_usd ~ make_year + mileage_kmpl + engine_cc + fuel_type + owner_count, data = train_df)
+summary(final_model)
+```
+
+Linearity
+```{r}
+crPlots(final_model)
+```
+
+```{r}
+# Residual Analysis-The residual plots
+
+
+# Residuals vs Fitted 
+plot(final_model,which=1,col="orange",pch=1)
+```
+
+
+```{r}
+#Q-Q plot  
+plot(final_model,which=2,col="red",pch=1) 
+```
+
+
+```{r}
+# Create the data frame with residuals 
+res <- data.frame(res = resid(final_model)) 
+avp <- cbind(train_df,res) 
+
+# Plot residuals vs. Run order 
+plot(1:nrow(avp), avp$res, 
+main = "Residauls vs Run Order", 
+xlab = "Run Order", 
+ylab = "Residual", 
+pch = 1,      
+# Shape of points 
+col = "blue")  # Color of points 
+
+# Add a horizontal line at y = 0 
+abline(h=0,col = "red") 
+```
+Test the data set
+```{r}
+test_data_model <- lm( price_usd ~ make_year + mileage_kmpl + engine_cc + fuel_type + owner_count, data = test_df)
+summary(test_data_model)
+```
+
+
+```{r}
+# Predict using the final model
+predicted_price <- predict(final_model, newdata = test_df)
+
+# Compare predicted vs actual
+results <- data.frame(Actual = test_df$price_usd, Predicted = predicted_price)
+head(results)
+
+```
+
+train data evaluation
+```{r}
+library(Metrics)
+# Predict on train data
+predicted_train <- predict(final_model, newdata = train_df)
+
+# Create train results data frame
+results_train <- data.frame(Actual = train_df$price_usd, Predicted = predicted_train)
+
+# Metrics for train data
+mae_train <- mae(results_train$Actual, results_train$Predicted)
+rmse_train <- rmse(results_train$Actual, results_train$Predicted)
+SSE_train <- sum((results_train$Actual - results_train$Predicted)^2)
+SST_train <- sum((results_train$Actual - mean(results_train$Actual))^2)
+r2_train <- 1 - SSE_train/SST_train
+
+```
+Test data evaluation
+```{r}
+# Predict on test data
+predicted_test <- predict(final_model, newdata = test_df)
+
+# Create test results data frame
+results_test <- data.frame(Actual = test_df$price_usd, Predicted = predicted_test)
+
+# Metrics for test data
+mae_test <- mae(results_test$Actual, results_test$Predicted)
+rmse_test <- rmse(results_test$Actual, results_test$Predicted)
+SSE_test <- sum((results_test$Actual - results_test$Predicted)^2)
+SST_test <- sum((results_test$Actual - mean(results_test$Actual))^2)
+r2_test <- 1 - SSE_test/SST_test
+
+```
+
+Comparison
+```{r}
+cat("Model Performance Comparison:\n")
+cat("-------------------------------------------------\n")
+cat("            |   Train Data   |   Test Data\n")
+cat("-------------------------------------------------\n")
+cat("MAE         |", round(mae_train,2), "         |", round(mae_test,2), "\n")
+cat("RMSE        |", round(rmse_train,2), "        |", round(rmse_test,2), "\n")
+cat("R-squared   |", round(r2_train,4), "         |", round(r2_test,4), "\n")
+cat("-------------------------------------------------\n")
+
+```
+Plot actual vs predicted
+
+```{r}
+plot(results_test$Actual, results_test$Predicted,
+     main = "Actual vs Predicted (Test Data)",
+     xlab = "Actual Price", ylab = "Predicted Price",
+     col = "blue", pch = 16)
+abline(0, 1, col = "red", lwd = 2)
+
+```
 
